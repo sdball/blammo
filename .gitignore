@@ -35,3 +35,4 @@ blammo-*.tar
 npm-debug.log
 /assets/node_modules/
 
+/sample_logs/
