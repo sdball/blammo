@@ -22,14 +22,18 @@ defmodule Blammo.LogConsumer do
   end
 
   def consume(options = %Options{}) do
-    Task.Supervisor.async(Blammo.LogSupervisor, fn ->
-      Path.join([@log_path, options.filename])
-      |> stream()
-      |> last(options.lines)
-      |> filter(options.filter)
-      |> Enum.join()
-    end)
-    |> Task.await()
+    result =
+      Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
+        Path.join([@log_path, options.filename])
+        |> Blammo.File.tail(options.lines)
+      end)
+      |> Task.yield()
+
+    case result do
+      {:ok, lines} -> {:ok, lines}
+      {:exit, reason} -> {:error, reason}
+      nil -> {:error, "timed out reading logfile"}
+    end
   end
 
   def consume(filename) when is_binary(filename) do
@@ -37,19 +41,4 @@ defmodule Blammo.LogConsumer do
     |> Options.build!()
     |> consume()
   end
-
-  defp stream(path) do
-    File.stream!(path)
-  end
-
-  defp last(stream, limit), do: Stream.take(stream, -limit)
-
-  defp filter(stream, pattern) when not is_nil(pattern) do
-    stream
-    |> Stream.filter(fn line ->
-      line |> String.contains?(pattern)
-    end)
-  end
-
-  defp filter(stream, _pattern), do: stream
 end
