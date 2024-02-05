@@ -9,6 +9,7 @@ defmodule Blammo.Application do
       BlammoWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:blammo, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Blammo.PubSub},
+      {Task.Supervisor, name: Blammo.LogSupervisor, timeout: 15000},
       BlammoWeb.Endpoint
     ]
 

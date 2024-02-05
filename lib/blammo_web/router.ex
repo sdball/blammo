@@ -22,6 +22,7 @@ defmodule BlammoWeb.Router do
   scope "/api", BlammoWeb do
     pipe_through :api
     get "/tagline", LogsController, :tagline
+    get "/logs", LogsController, :loglines
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
