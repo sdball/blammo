@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :blammo, log_consumer_path: System.get_env("BLAMMO_LOG_CONSUMER_PATH") || "/var/log"
+
 config :blammo,
   generators: [timestamp_type: :utc_datetime]
 

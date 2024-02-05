@@ -1,4 +1,6 @@
 defmodule Blammo.LogConsumer do
+  @log_path Application.compile_env(:blammo, :log_consumer_path, "/var/log")
+
   defmodule Options do
     defstruct [:filename, lines: 1000, filter: nil]
 
@@ -13,21 +15,41 @@ defmodule Blammo.LogConsumer do
           {:ok, options}
       end
     end
+
+    def build!(given) do
+      struct(Options, given)
+    end
   end
 
   def consume(options = %Options{}) do
-    dbg(options)
-
-    # TODO: actually read some file lines and such
     Task.Supervisor.async(Blammo.LogSupervisor, fn ->
-      [
-        "Line 4",
-        "Line 3",
-        "Line 2",
-        "Line 1"
-      ]
-      |> Enum.join("\n")
+      Path.join([@log_path, options.filename])
+      |> stream()
+      |> last(options.lines)
+      |> filter(options.filter)
+      |> Enum.join()
     end)
     |> Task.await()
   end
+
+  def consume(filename) when is_binary(filename) do
+    %{filename: filename}
+    |> Options.build!()
+    |> consume()
+  end
+
+  defp stream(path) do
+    File.stream!(path)
+  end
+
+  defp last(stream, limit), do: Stream.take(stream, -limit)
+
+  defp filter(stream, pattern) when not is_nil(pattern) do
+    stream
+    |> Stream.filter(fn line ->
+      line |> String.contains?(pattern)
+    end)
+  end
+
+  defp filter(stream, _pattern), do: stream
 end
