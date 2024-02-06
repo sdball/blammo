@@ -23,6 +23,10 @@ Blammo currently has these three major domains
 - Log Consumer: handles requesting a task which calls Blammo.File and presenting lines or an error value to the HTTP API
 - Blammo.File: provides functions that accept a filepath and filtering arguments and return a list of lines fulfilling the request
 
+## High Level Design
+
+![Blammo High Level Design](./images/design.png)
+
 ## Choices to Consider
 
 ### Reading lines from the end of a file
