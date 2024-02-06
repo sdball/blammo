@@ -27,11 +27,11 @@ Blammo currently has these three major domains
 
 ### Reading lines from the end of a file
 
-The `Blammo.File` module's reading from the end of a file could be optimized. Currently we read a starting chunk from the end of the file, split that chunk by newlines, discard the first line (almost certainly a partial line), and then count the lines.
+The `Blammo.File` module's reading from the end of a file could be optimized. Currently we read a starting chunk from the end of the file, split that chunk by newlines, discard the first line (almost certainly a partial line) unless we've reached the beginning of the file, and then count the lines.
 
+- If we've reached the beginning of the file: return whatever lines we have gotten.
 - If our count matches our requested limit: we're done!
 - If our count is less than our limit: try again with a doubled chunk size.
-- If we've reached the beginning of the file: return whatever lines we have gotten.
 
 This approach is simple, performant, avoids memory issues, avoids any mechanics around position tracking and assembling lines. These are all nice qualities to have: but we should prioritize some experimentation to compare this approach with one that reads progressively more of the file instead of progressively larger chunks from the end of the file.
 

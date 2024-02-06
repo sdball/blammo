@@ -24,16 +24,26 @@ defmodule Blammo.LogConsumer do
   def consume_filter_first(options = %Options{}) do
     result =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
-        Path.join([@log_path, options.filename])
-        |> Blammo.File.filtered_tail(options.filter, options.lines)
-        |> Enum.reverse()
-        |> Enum.join("\n")
+        tail =
+          Path.join([@log_path, options.filename])
+          |> Blammo.File.filtered_tail(options.filter, options.lines)
+
+        case tail do
+          {:error, :enoent} ->
+            {:error, "file not found"}
+
+          lines ->
+            lines
+            |> Enum.reverse()
+            |> Enum.join("\n")
+        end
       end)
       |> Task.yield()
 
     case result do
-      {:ok, lines} -> {:ok, lines}
-      {:exit, reason} -> {:error, reason}
+      {:ok, lines} when is_binary(lines) -> {:ok, lines}
+      {:ok, {:error, reason}} -> {:error, reason}
+      {:exit, _reason} -> {:error, "error reading logfile"}
       nil -> {:error, "timed out reading logfile"}
     end
   end
@@ -41,16 +51,29 @@ defmodule Blammo.LogConsumer do
   def consume_lines_first(options = %Options{}) do
     result =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
-        Path.join([@log_path, options.filename])
-        |> Blammo.File.tail(options.lines)
-        |> maybe_filter(options.filter)
-        |> Enum.reverse()
-        |> Enum.join("\n")
+        tail =
+          Path.join([@log_path, options.filename])
+          |> Blammo.File.tail(options.lines)
+          |> maybe_filter(options.filter)
+
+        case tail do
+          {:error, :enoent} ->
+            {:error, "file not found"}
+
+          {:error, _reason} ->
+            {:error, "error reading file"}
+
+          lines ->
+            lines
+            |> Enum.reverse()
+            |> Enum.join("\n")
+        end
       end)
       |> Task.yield()
 
     case result do
-      {:ok, lines} -> {:ok, lines}
+      {:ok, lines} when is_binary(lines) -> {:ok, lines}
+      {:ok, {:error, reason}} -> {:error, reason}
       {:exit, reason} -> {:error, reason}
       nil -> {:error, "timed out reading logfile"}
     end

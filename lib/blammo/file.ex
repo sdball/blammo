@@ -53,15 +53,15 @@ defmodule Blammo.File do
       lines =
         bytes
         |> String.split("\n", trim: true)
-        |> Enum.drop(1)
+        |> maybe_drop_partial_line(start)
         |> Enum.take(-options.limit)
 
       cond do
-        Enum.count(lines) < options.limit ->
-          recur_tail(%{options | chunk: options.chunk * 2})
-
         start == 0 ->
           lines
+
+        Enum.count(lines) < options.limit ->
+          recur_tail(%{options | chunk: options.chunk * 2})
 
         true ->
           lines
@@ -76,21 +76,27 @@ defmodule Blammo.File do
       lines =
         bytes
         |> String.split("\n", trim: true)
-        |> Enum.drop(1)
+        |> maybe_drop_partial_line(start)
         |> maybe_filter(options.filter)
         |> Enum.take(-options.limit)
 
       cond do
-        Enum.count(lines) < options.limit ->
-          recur_filtered_tail(%{options | chunk: options.chunk * 2})
-
         start == 0 ->
           lines
+
+        Enum.count(lines) < options.limit ->
+          recur_filtered_tail(%{options | chunk: options.chunk * 2})
 
         true ->
           lines
       end
     end
+  end
+
+  defp maybe_drop_partial_line(lines, 0), do: lines
+
+  defp maybe_drop_partial_line(lines, _start) do
+    Enum.drop(lines, 1)
   end
 
   defp maybe_filter(lines, nil), do: lines
