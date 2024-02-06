@@ -23,6 +23,8 @@ defmodule BlammoWeb.Router do
     pipe_through :api
     get "/tagline", LogsController, :tagline
     get "/logs", LogsController, :loglines
+    get "/logs/filter-first", LogsController, :loglines
+    get "/logs/tail-first", LogsController, :tail_first
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
