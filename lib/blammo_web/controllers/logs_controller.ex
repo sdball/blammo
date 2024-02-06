@@ -13,7 +13,7 @@ defmodule BlammoWeb.LogsController do
          {:ok, options} <- Blammo.LogConsumer.Options.build(valid),
          {:ok, lines} <-
            Blammo.LogConsumer.consume(options) do
-      text(conn, lines)
+      text(conn, lines <> "\n")
     else
       {:error, reason} ->
         conn
