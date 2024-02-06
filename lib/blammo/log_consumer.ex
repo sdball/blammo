@@ -26,8 +26,6 @@ defmodule Blammo.LogConsumer do
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
         Path.join([@log_path, options.filename])
         |> Blammo.File.filtered_tail(options.filter, options.lines)
-        # |> Blammo.File.tail(options.lines)
-        # |> maybe_filter(options.filter)
         |> Enum.reverse()
         |> Enum.join("\n")
       end)
