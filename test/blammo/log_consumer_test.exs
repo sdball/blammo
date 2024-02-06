@@ -48,6 +48,22 @@ defmodule Blammo.LogConsumerTest do
         _other ->
           flunk("build/1 should have returned error for negative lines")
       end
+
+      case LogConsumer.Options.build(%{filename: "../README.md"}) do
+        {:error, _reason} ->
+          :passes
+
+        _other ->
+          flunk("build/1 should have rejected an unsafe filepath")
+      end
+
+      case LogConsumer.Options.build(%{filename: "/etc/passwd"}) do
+        {:error, _reason} ->
+          :passes
+
+        _other ->
+          flunk("build/1 should have rejected an unsafe filepath")
+      end
     end
   end
 

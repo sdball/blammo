@@ -1,8 +1,8 @@
 defmodule Blammo.LogConsumer do
-  @log_path Application.compile_env(:blammo, :log_consumer_path, "/var/log")
-
   defmodule Options do
-    defstruct [:filename, lines: 1000, filter: nil]
+    @log_path Application.compile_env(:blammo, :log_consumer_path, "/var/log")
+
+    defstruct [:filename, :filepath, lines: 1000, filter: nil]
 
     def build(given) when is_map(given) do
       options = struct(Options, given)
@@ -14,8 +14,11 @@ defmodule Blammo.LogConsumer do
         options.lines <= 0 ->
           {:error, "line count of less than 1 is invalid"}
 
+        Path.safe_relative(options.filename, @log_path) == :error ->
+          {:error, "invalid file path"}
+
         true ->
-          {:ok, options}
+          {:ok, %{options | filepath: Path.join(@log_path, options.filename)}}
       end
     end
 
@@ -28,8 +31,7 @@ defmodule Blammo.LogConsumer do
     result =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
         tail =
-          Path.join([@log_path, options.filename])
-          |> Blammo.File.filtered_tail(options.filter, options.lines)
+          Blammo.File.filtered_tail(options.filepath, options.filter, options.lines)
 
         case tail do
           {:error, :enoent} ->
@@ -55,8 +57,7 @@ defmodule Blammo.LogConsumer do
     result =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
         tail =
-          Path.join([@log_path, options.filename])
-          |> Blammo.File.tail(options.lines)
+          Blammo.File.tail(options.filepath, options.lines)
           |> maybe_filter(options.filter)
 
         case tail do
