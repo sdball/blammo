@@ -7,12 +7,10 @@ defmodule BlammoWeb.LogsController do
   end
 
   def loglines(conn, params) do
-    dbg(params)
-
     with {:ok, valid} <- validate_params(params),
          {:ok, options} <- Blammo.LogConsumer.Options.build(valid),
          {:ok, lines} <-
-           Blammo.LogConsumer.consume(options) do
+           Blammo.LogConsumer.consume_filter_first(options) do
       text(conn, lines <> "\n")
     else
       {:error, reason} ->
