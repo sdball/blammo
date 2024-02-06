@@ -8,6 +8,9 @@ defmodule Blammo.LogConsumer do
       options = struct(Options, given)
 
       cond do
+        is_nil(options.filename) ->
+          {:error, "filename must be provided"}
+
         options.lines <= 0 ->
           {:error, "line count of less than 1 is invalid"}
 
