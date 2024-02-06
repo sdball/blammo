@@ -27,6 +27,10 @@ Blammo currently has these three major domains
 
 ![Blammo High Level Design](./images/design.png)
 
+## Security
+
+Of utmost concern is that we are allowing users to specify files on the filesystem. If we aren't careful we could inadvertently expose system files. Of course Blammo is careful and there are automated tests around that edge.
+
 ## Choices to Consider
 
 ### Reading lines from the end of a file
@@ -54,6 +58,12 @@ For example if we find that the chunk size almost never needs to increase then i
 Currently Blammo provides functions for either approach. If we have a product decision on how we should tail/filter log files then we may be able to delete a path of code.
 
 If we actually do want to provide both approaches then there is an opportunity to refactor the code paths in `Blammo.LogConsumer` which are largely duplicated at present.
+
+### User selection of files
+
+Currently Blammo allows the user to specify any arbitrary file and, if found in the log path, it will be returned.
+
+An alternative approach would be to have a well known list of allowed log files the user must select. Or possibly to only allow selecting \*.log files.
 
 ## Performance
 
