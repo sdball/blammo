@@ -18,6 +18,10 @@ defmodule BlammoWeb.LogsController do
       {:error, reason} ->
         conn
         |> send_resp(400, reason)
+
+      nil ->
+        conn
+        |> send_resp(400, "error reading log file")
     end
   end
 
