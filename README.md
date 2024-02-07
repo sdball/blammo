@@ -105,7 +105,7 @@ You can run all tests with the command
 mix test
 ```
 
-A test log file will be automatically created a needed.
+A test log file will be automatically created as needed.
 
 ## Further Reading
 
