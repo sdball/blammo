@@ -8,7 +8,39 @@ Let's get log contents via REST!
 
 ![Blammo Web Interface](./images/web-interface.png)
 
-## Goal
+## Usage
+
+You can either use the web interface at http://localhost:4000 or access the API directly.
+
+For direct API access to log file lines you have two endpoints
+
+- one applies a given filter (if any) first and searches until it reaches the requested number of lines, the beginning of the file, or times out
+- one retrieves the requested number of lines first and then applies a given filter (if any)
+
+| Endpoint     | Route                                      | Params                  |
+| ------------ | ------------------------------------------ | ----------------------- |
+| filter first | GET http://localhost/api/logs/filter-first | filename, filter, lines |
+| filter first | GET http://localhost/api/logs              | filename, filter, lines |
+| lines first  | GET http://localhost/api/logs/lines-first  | filename, filter, lines |
+
+In both endpoints `lines` defaults to `1000` if not provided.
+
+The `/api/logs` endpoint is configured as an alias to the "filter-first" endpoint.
+
+Examples:
+
+```bash
+# fetch 1000 most recent lines from sample.10MB.log
+curl http://localhost:4000/api/logs/tail-first\?filename\=sample.10MB.log
+
+# fetch 250 most recent lines containing "xyzzy"
+curl http://localhost:4000/api/logs/filter-first\?filename\=sample.10MB.log\&filter=xyzzy\&lines=250
+
+# fetch 250 most recent lines and then filter that set to lines with "plugh"
+curl http://localhost:4000/api/logs/tail-first\?filename\=sample.10MB.log\&filter=xyzzy\&lines=250
+```
+
+## Goals
 
 Provide log file contents via REST
 
@@ -21,7 +53,7 @@ Provide log file contents via REST
     - (optional) text filtering
 - Be performant for files >1GB in size
 
-## Stretch
+### Stretch Goals
 
 - A basic UI (beyond a curl text API)
 - A primary server that requests logs from secondary servers
@@ -33,7 +65,13 @@ Provide log file contents via REST
 
 ```
 mise plugin add erlang https://github.com/asdf-vm/asdf-erlang.git
+```
+
+```
 mise plugin install elixir https://github.com/glossia/mise-elixir.git
+```
+
+```
 mise install elixir
 ```
 
@@ -58,6 +96,16 @@ You can also browse to the web interface!
 http://localhost:4000/
 
 It's log log log!
+
+## Running Tests
+
+You can run all tests with the command
+
+```
+mix test
+```
+
+A test log file will be automatically created a needed.
 
 ## Further Reading
 
