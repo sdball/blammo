@@ -6,6 +6,8 @@ Let's get log contents via REST!
 
 ![Blammo Logo](./images/logo.png)
 
+![Blammo Web Interface](./images/web-interface.png)
+
 ## Goal
 
 Provide log file contents via REST
@@ -50,6 +52,10 @@ curl http://localhost:4000/api/logs\?filename\=sample.10MB.log\&lines\=12
 # last 12 instances of xyzzy
 curl http://localhost:4000/api/logs\?filename\=sample.10MB.log\&lines\=12\&filter=xyzzy
 ```
+
+You can also browse to the web interface!
+
+http://localhost:4000/
 
 It's log log log!
 
