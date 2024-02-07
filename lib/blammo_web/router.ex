@@ -16,7 +16,7 @@ defmodule BlammoWeb.Router do
 
   scope "/", BlammoWeb do
     pipe_through :browser
-    get "/", PageController, :home
+    live "/", LogViewerLive
   end
 
   scope "/api", BlammoWeb do

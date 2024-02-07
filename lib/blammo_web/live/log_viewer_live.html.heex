@@ -1,0 +1,60 @@
+<div class="p-12 w-screen h-screen">
+  <div class="flex h-20">
+    <div class="m-auto">
+      <h1 class="font-bold text-4xl">Logs! From Blammo! 🪵</h1>
+    </div>
+  </div>
+  <div class="flex gap-x-9">
+    <div class="bg-white rounded-lg shadow-lg w-64 p-9">
+      <form phx-submit="tail_log" phx-change="tail_log">
+        <div class="mb-4">
+          <label for="file" class="block text-gray-700 text-sm font-bold mb-2">File</label>
+          <select
+            name="file"
+            id="file"
+            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+          >
+            <%= for file <- @files do %>
+              <%= if file == @file do %>
+                <option value={file} selected><%= file %></option>
+              <% else %>
+                <option value={file}><%= file %></option>
+              <% end %>
+            <% end %>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="lines" class="block text-gray-700 text-sm font-bold mb-2">Lines</label>
+          <input type="number" id="lines" name="lines" min="1" max="1000" value={@lines} />
+        </div>
+
+        <div class="mb-4">
+          <label for="filter" class="block text-gray-700 text-sm font-bold mb-2">
+            Filter (optional)
+          </label>
+          <input
+            type="text"
+            id="filter"
+            name="filter"
+            placeholder="Enter text to filter..."
+            value={@filter}
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >
+          Tail Log
+        </button>
+      </form>
+    </div>
+    <div class="w-screen overflow-scroll flex-1">
+      <div class="bg-gray-800 text-white p-6 rounded-lg shadow-lg">
+        <pre class="whitespace-pre-wrap"><%= @log_content %></pre>
+      </div>
+    </div>
+  </div>
+</div>

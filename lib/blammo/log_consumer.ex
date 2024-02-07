@@ -25,6 +25,8 @@ defmodule Blammo.LogConsumer do
     def build!(given) do
       struct(Options, given)
     end
+
+    def log_path, do: @log_path
   end
 
   def consume_filter_first(options = %Options{}) do
@@ -81,6 +83,11 @@ defmodule Blammo.LogConsumer do
       {:exit, reason} -> {:error, reason}
       nil -> {:error, "timed out reading logfile"}
     end
+  end
+
+  def log_files() do
+    Options.log_path()
+    |> File.ls!()
   end
 
   defp maybe_filter(lines, nil), do: lines
