@@ -45,7 +45,9 @@ This approach is simple, performant, avoids memory issues, avoids any mechanics 
 
 It could well be that the overhead of tracking lines between function calls, joining lists, and ensuring we don't stumble on partial lines isn't worth the effort. But it should be measured.
 
-It could also well be that any effort on this aspect of the domain is better spent writing a lower level utility for handling file reads, e.g. writing a NIF in Rust to handle reads.
+One consideration that would absolutely make the effort worthwhile is if we want to filter first and allow finding sparse results. Instead of an increasing chunk size until we have enough lines to return we'll need to be able to efficiently step backwards through the file in pieces; filtering as we go.
+
+It could also well be that any effort on this aspect of the domain is better spent writing a lower level utility for handling file reads, e.g. writing a NIF in Rust.
 
 ### Chunk size
 
