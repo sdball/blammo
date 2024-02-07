@@ -55,6 +55,8 @@ Currently the chunk size we start with is fixed at `65536`. We could introduce a
 
 For example if we find that the chunk size almost never needs to increase then it could start providing `32768` or some other smaller starting point. If we find that the chunk size almost always needs to increase then it could start providing the statistical mode of the needed chunk sizes.
 
+We could also assume log lines are a generally consistent length and see how many log lines are in a given chunk; then use that assumption to more intelligently increase the chunk size.
+
 ### Filter and then get lines OR Get lines and then filter
 
 Currently Blammo provides functions for either approach. If we have a product decision on how we should tail/filter log files then we may be able to delete a path of code.
