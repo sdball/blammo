@@ -49,6 +49,9 @@
         >
           Tail Log
         </button>
+        <%= if @error do %>
+          <p class="text-red-500"><%= @error %></p>
+        <% end %>
       </form>
     </div>
     <div class="w-screen overflow-scroll flex-1">

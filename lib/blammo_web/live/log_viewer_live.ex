@@ -2,8 +2,15 @@ defmodule BlammoWeb.LogViewerLive do
   use BlammoWeb, :live_view
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, files: get_files(), log_content: "", lines: 25, filter: nil, file: nil),
-     layout: false}
+    {:ok,
+     assign(socket,
+       files: get_files(),
+       log_content: "",
+       lines: 25,
+       filter: nil,
+       file: nil,
+       error: nil
+     ), layout: false}
   end
 
   def handle_event("tail_log", %{"file" => file, "lines" => lines, "filter" => filter}, socket) do
@@ -12,12 +19,35 @@ defmodule BlammoWeb.LogViewerLive do
         {:noreply, socket}
 
       {lines, _} ->
-        content = tail_log(file, lines, filter)
-        {:noreply, assign(socket, log_content: content, lines: lines, filter: filter, file: file)}
+        case tail_log(file, lines, filter) do
+          {:ok, content} ->
+            {:noreply,
+             assign(socket,
+               error: nil,
+               log_content: content,
+               lines: lines,
+               filter: filter,
+               file: file
+             )}
+
+          {:error, reason} ->
+            {:noreply,
+             assign(socket,
+               log_content: "",
+               error: reason,
+               lines: lines,
+               filter: filter,
+               file: file
+             )}
+        end
 
       _error ->
         {:noreply, socket}
     end
+  end
+
+  def handle_info(_any, socket) do
+    {:noreply, socket}
   end
 
   defp get_files do
@@ -31,15 +61,8 @@ defmodule BlammoWeb.LogViewerLive do
       filter: filter
     }
 
-    dbg(opts)
-    dbg(Blammo.LogConsumer.Options.build(opts))
-
-    with {:ok, options} <- Blammo.LogConsumer.Options.build(opts),
-         {:ok, lines} <- Blammo.LogConsumer.consume_filter_first(options) do
-      lines
-    else
-      error ->
-        error
+    with {:ok, options} <- Blammo.LogConsumer.Options.build(opts) do
+      Blammo.LogConsumer.consume_filter_first(options)
     end
   end
 end
