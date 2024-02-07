@@ -65,6 +65,10 @@ Currently Blammo allows the user to specify any arbitrary file and, if found in 
 
 An alternative approach would be to have a well known list of allowed log files the user must select. Or possibly to only allow selecting \*.log files.
 
+### Web Interface
+
+Currently the web interface does not get to create or even have access to the spawned Task that gathers log data. It would be an improvement to change the live view to have the task available. Then we could grey out the lines or put up a spinner while the work is happening in the background and populate the contents when the task is complete. Right now our live view simply waits for data which is fine enough when the results are fast but for slow results more user feedback would be nice.
+
 ## Performance
 
 Currently Blammo maintains stable memory usage, allows a high number of concurrent requests, and is performant up to reasonable line counts.
