@@ -13,6 +13,7 @@
             name="file"
             id="file"
             class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+            disabled={@busy}
           >
             <%= for file <- @files do %>
               <%= if file == @file do %>
@@ -26,7 +27,15 @@
 
         <div class="mb-4">
           <label for="lines" class="block text-gray-700 text-sm font-bold mb-2">Lines</label>
-          <input type="number" id="lines" name="lines" min="1" max="1000" value={@lines} />
+          <input
+            type="number"
+            id="lines"
+            name="lines"
+            min="1"
+            max="1000"
+            value={@lines}
+            disabled={@busy}
+          />
         </div>
 
         <div class="mb-4">
@@ -40,12 +49,15 @@
             placeholder="Enter text to filter..."
             value={@filter}
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            phx-debounce="500"
+            disabled={@busy}
           />
         </div>
 
         <button
           type="submit"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          disabled={@busy}
         >
           Tail Log
         </button>

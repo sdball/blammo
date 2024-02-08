@@ -15,9 +15,15 @@ defmodule BlammoWeb.LogViewerLive do
   end
 
   def handle_event("tail_log", %{"file" => file, "lines" => lines, "filter" => filter}, socket) do
-    GenServer.cast(self(), {:tail_log, %{"file" => file, "lines" => lines, "filter" => filter}})
+    GenServer.cast(
+      self(),
+      {:tail_log, %{"file" => file, "lines" => lines, "filter" => filter}}
+    )
+
     {:noreply, assign(socket, busy: true, log_content: "Reading … … …")}
   end
+
+  def handle_event("tail_log", _params, socket), do: {:noreply, socket}
 
   def handle_cast({:tail_log, %{"file" => file, "lines" => lines, "filter" => filter}}, socket) do
     case Integer.parse(lines) do
