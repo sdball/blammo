@@ -35,21 +35,26 @@ Of utmost concern is that we are allowing users to specify files on the filesyst
 
 ### Reading lines from the end of a file
 
-The `Blammo.File` module's reading from the end of a file could be optimized. Currently we read a starting chunk from the end of the file, split that chunk by newlines, discard the first line (almost certainly a partial line) unless we've reached the beginning of the file, and then count the lines.
+Blammo has two different modes of reading from the end of the file.
+
+- In filter-first Blammo steps backwards through the file in large chunks to minimize IO blocking. We take this approach because it's entirely possible we may need to filter the entire file to find matching lines.
+- In tail-first Blammo reads from the end of the file with an ever-increasing chunk size. We take this approach because we know that the data we need is at the end of the file, we only need to read enough data to get the requested number of lines.
+
+In either approach when Blammo splits each chunk of the file by newlines then discards the first line unless we're at the start of the file.
+
+After reading a chunk then we evaluate…
 
 - If we've reached the beginning of the file: return whatever lines we have gotten.
 - If our count matches our requested limit: we're done!
-- If our count is less than our limit: try again with a doubled chunk size.
+- If our count is less than our limit…
+  - filter-first: increase the chunk size (up to a maximum) and read the next chunk
+  - tail-first: increase the chunk size and read from the end of the file again
 
-This approach is simple, performant, avoids memory issues, avoids any mechanics around position tracking and assembling lines. These are all nice qualities to have: but we should prioritize some experimentation to compare this approach with one that reads progressively more of the file instead of progressively larger chunks from the end of the file.
-
-It could well be that the overhead of tracking lines between function calls, joining lists, and ensuring we don't stumble on partial lines isn't worth the effort. But it should be measured.
-
-One consideration that would absolutely make the effort worthwhile is if we want to filter first and allow finding sparse results. Instead of an increasing chunk size until we have enough lines to return we'll need to be able to efficiently step backwards through the file in pieces; filtering as we go.
+These approaches are reasonably performant but this is absolutely the area of the application to focus on for performance improvements.
 
 It could also well be that any effort on this aspect of the domain is better spent writing a lower level utility for handling file reads, e.g. writing a NIF in Rust.
 
-### Chunk size
+### Intelligent chunk sizing in the tail-first path
 
 Currently the chunk size we start with is fixed at `65536`. We could introduce a process into the application stack that is asynchronously called with the maximum chunk size needed to satisfy each request. That process could maintain statistical aggregates and provide an optimal chunk size to subsequent requests. That would allow this application to dynamically improve its performance if it finds that it's doing small reads or big reads.
 
@@ -85,42 +90,42 @@ e.g.
 hey http://localhost:4000/api/logs/filter-first\?filename\=sample.1GB.log\&lines\=1000\&filter\=xyzzy
 
 Summary:
-  Total:    0.2752 secs
-  Slowest:  0.0859 secs
-  Fastest:  0.0366 secs
-  Average:  0.0637 secs
-  Requests/sec: 726.6398
+  Total:	0.3330 secs
+  Slowest:	0.1454 secs
+  Fastest:	0.0233 secs
+  Average:	0.0787 secs
+  Requests/sec:	600.6846
 
 
 Response time histogram:
-  0.037 [1]   |■
-  0.042 [1]   |■
-  0.046 [6]   |■■■■■
-  0.051 [13]  |■■■■■■■■■■
-  0.056 [21]  |■■■■■■■■■■■■■■■■■
-  0.061 [30]  |■■■■■■■■■■■■■■■■■■■■■■■■
-  0.066 [50]  |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-  0.071 [35]  |■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-  0.076 [23]  |■■■■■■■■■■■■■■■■■■
-  0.081 [8]   |■■■■■■
-  0.086 [12]  |■■■■■■■■■■
+  0.023 [1]   |■
+  0.036 [6]   |■■■■
+  0.048 [17]  |■■■■■■■■■■■■
+  0.060 [36]  |■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.072 [55]  |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.084 [21]  |■■■■■■■■■■■■■■■
+  0.097 [19]  |■■■■■■■■■■■■■■
+  0.109 [3]   |■■
+  0.121 [4]   |■■■
+  0.133 [11]  |■■■■■■■■
+  0.145 [27]  |■■■■■■■■■■■■■■■■■■■■
 
 
 Latency distribution:
-  10% in 0.0507 secs
-  25% in 0.0581 secs
-  50% in 0.0641 secs
-  75% in 0.0692 secs
-  90% in 0.0762 secs
-  95% in 0.0825 secs
-  99% in 0.0859 secs
+  10% in 0.0440 secs
+  25% in 0.0578 secs
+  50% in 0.0657 secs
+  75% in 0.0947 secs
+  90% in 0.1363 secs
+  95% in 0.1433 secs
+  99% in 0.1451 secs
 
 Details (average, fastest, slowest):
-  DNS+dialup:	0.0010 secs, 0.0366 secs, 0.0859 secs
-  DNS-lookup:	0.0006 secs, 0.0000 secs, 0.0026 secs
-  req write:	0.0001 secs, 0.0000 secs, 0.0017 secs
-  resp wait:	0.0619 secs, 0.0364 secs, 0.0857 secs
-  resp read:	0.0006 secs, 0.0002 secs, 0.0045 secs
+  DNS+dialup:	0.0008 secs, 0.0233 secs, 0.1454 secs
+  DNS-lookup:	0.0004 secs, 0.0000 secs, 0.0022 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0015 secs
+  resp wait:	0.0771 secs, 0.0229 secs, 0.1417 secs
+  resp read:	0.0008 secs, 0.0002 secs, 0.0095 secs
 
 Status code distribution:
   [200]	200 responses

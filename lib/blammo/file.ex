@@ -4,7 +4,7 @@ defmodule Blammo.File do
   end
 
   defmodule FilteredTailOptions do
-    defstruct [:file, :file_size, :filter, limit: 1000, chunk: 65536]
+    defstruct [:file, :file_size, :filter, limit: 1000, chunk: 1_048_576]
   end
 
   def tail(fpath, limit) do
@@ -37,7 +37,7 @@ defmodule Blammo.File do
           limit: limit
         })
 
-      recur_filtered_tail(options)
+      recur_filtered_tail(options, current: file_size, lines: [])
     else
       {:error, reason} ->
         {:error, reason}
@@ -69,23 +69,29 @@ defmodule Blammo.File do
     end
   end
 
-  def recur_filtered_tail(options = %FilteredTailOptions{}) do
-    start = max(options.file_size - options.chunk, 0)
+  def recur_filtered_tail(options = %FilteredTailOptions{}, current: current, lines: lines) do
+    start = max(current - options.chunk, 0)
 
-    with {:ok, bytes} <- :file.pread(options.file, start, options.file_size) do
-      lines =
+    with {:ok, bytes} <- :file.pread(options.file, start, current) do
+      more_lines =
         bytes
         |> String.split("\n", trim: true)
         |> maybe_drop_partial_line(start)
         |> maybe_filter(options.filter)
-        |> Enum.take(-options.limit)
+
+      lines = (lines ++ more_lines) |> Enum.take(-options.limit)
 
       cond do
         start == 0 ->
           lines
 
         Enum.count(lines) < options.limit ->
-          recur_filtered_tail(%{options | chunk: options.chunk * 2})
+          next_chunk = max(options.chunk * 2, 52_428_800)
+
+          recur_filtered_tail(%{options | chunk: next_chunk},
+            current: current - options.chunk,
+            lines: lines
+          )
 
         true ->
           lines

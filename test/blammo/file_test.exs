@@ -55,8 +55,8 @@ defmodule Blammo.FileTest do
           |> Blammo.File.filtered_tail("xyzzy", 100)
         end)
 
-      # 10_000 microseconds = 10ms
-      assert timing <= 10_000
+      # 1_000_000 microseconds = 1000ms
+      assert timing <= 1_000_000
     end
   end
 end

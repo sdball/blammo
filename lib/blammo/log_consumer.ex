@@ -30,7 +30,7 @@ defmodule Blammo.LogConsumer do
   end
 
   def consume_filter_first(options = %Options{}) do
-    result =
+    task =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
         tail =
           Blammo.File.filtered_tail(options.filepath, options.filter, options.lines)
@@ -39,24 +39,26 @@ defmodule Blammo.LogConsumer do
           {:error, :enoent} ->
             {:error, "file not found"}
 
+          {:error, _reason} ->
+            {:error, "error reading file"}
+
           lines ->
             lines
             |> Enum.reverse()
             |> Enum.join("\n")
         end
       end)
-      |> Task.yield()
 
-    case result do
+    case Task.yield(task, 600_000) || Task.shutdown(task) do
       {:ok, lines} when is_binary(lines) -> {:ok, lines}
       {:ok, {:error, reason}} -> {:error, reason}
-      {:exit, _reason} -> {:error, "error reading logfile"}
+      {:exit, reason} -> {:error, reason}
       nil -> {:error, "timed out reading logfile"}
     end
   end
 
   def consume_lines_first(options = %Options{}) do
-    result =
+    task =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
         tail =
           Blammo.File.tail(options.filepath, options.lines)
@@ -75,9 +77,8 @@ defmodule Blammo.LogConsumer do
             |> Enum.join("\n")
         end
       end)
-      |> Task.yield()
 
-    case result do
+    case Task.yield(task, 10_000) || Task.shutdown(task) do
       {:ok, lines} when is_binary(lines) -> {:ok, lines}
       {:ok, {:error, reason}} -> {:error, reason}
       {:exit, reason} -> {:error, reason}
