@@ -9,17 +9,34 @@ defmodule BlammoWeb.LogViewerLive do
        lines: 25,
        filter: nil,
        file: nil,
-       error: nil
+       error: nil,
+       busy: false
      ), layout: false}
   end
 
   def handle_event("tail_log", %{"file" => file, "lines" => lines, "filter" => filter}, socket) do
+    GenServer.cast(self(), {:tail_log, %{"file" => file, "lines" => lines, "filter" => filter}})
+    {:noreply, assign(socket, busy: true, log_content: "Reading … … …")}
+  end
+
+  def handle_cast({:tail_log, %{"file" => file, "lines" => lines, "filter" => filter}}, socket) do
     case Integer.parse(lines) do
       {lines, _} when lines <= 0 ->
-        {:noreply, socket}
+        {:noreply, assign(socket, busy: false)}
 
       {lines, _} ->
         case tail_log(file, lines, filter) do
+          {:ok, ""} ->
+            {:noreply,
+             assign(socket,
+               error: nil,
+               log_content: "--- NO RESULTS ---",
+               lines: lines,
+               filter: filter,
+               file: file,
+               busy: false
+             )}
+
           {:ok, content} ->
             {:noreply,
              assign(socket,
@@ -27,7 +44,8 @@ defmodule BlammoWeb.LogViewerLive do
                log_content: content,
                lines: lines,
                filter: filter,
-               file: file
+               file: file,
+               busy: false
              )}
 
           {:error, reason} ->
@@ -37,12 +55,13 @@ defmodule BlammoWeb.LogViewerLive do
                error: reason,
                lines: lines,
                filter: filter,
-               file: file
+               file: file,
+               busy: false
              )}
         end
 
       _error ->
-        {:noreply, socket}
+        {:noreply, assign(socket, busy: false, log_content: "")}
     end
   end
 
