@@ -90,6 +90,7 @@ defmodule Blammo.LogConsumer do
   def log_files() do
     Options.log_path()
     |> File.ls!()
+    |> Enum.sort()
   end
 
   defp maybe_filter(lines, nil), do: lines
