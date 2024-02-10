@@ -2,14 +2,32 @@ import Config
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
-#
+
+node_number =
+  Node.self()
+  |> Atom.to_string()
+  |> String.split("@")
+  |> Enum.at(0)
+  |> String.split("node")
+  |> Enum.at(1)
+  |> Integer.parse()
+
+port =
+  case node_number do
+    {number, _} when is_integer(number) ->
+      4000 + (number - 1)
+
+    _ ->
+      4000
+  end
+
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
 config :blammo, BlammoWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: port],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
