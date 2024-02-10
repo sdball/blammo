@@ -23,7 +23,8 @@ defmodule Blammo.LogConsumer do
     end
 
     def build!(given) do
-      struct(Options, given)
+      {:ok, options} = build(given)
+      options
     end
 
     def log_path, do: @log_path
