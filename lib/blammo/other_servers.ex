@@ -9,8 +9,19 @@ defmodule Blammo.OtherServers do
 
   def files(nodename) do
     nodename
-    |> server_pid()
-    |> GenServer.call(:files)
+    |> Node.ping()
+    |> case do
+      :pong ->
+        files =
+          nodename
+          |> server_pid()
+          |> GenServer.call(:files)
+
+        {:ok, files}
+
+      :pang ->
+        {:error, :no_connection}
+    end
   end
 
   @doc """

@@ -23,8 +23,15 @@ defmodule BlammoWeb.LogViewerLive do
   end
 
   def handle_event("fetch_server_files", %{"server" => server}, socket) do
-    server_files = OtherServers.files(server |> String.to_existing_atom())
-    {:noreply, assign(socket, files: server_files, file: nil, log_content: "", server: server)}
+    case OtherServers.files(server |> String.to_existing_atom()) do
+      {:ok, server_files} ->
+        {:noreply,
+         assign(socket, files: server_files, file: nil, log_content: "", server: server)}
+
+      {:error, :no_connection} ->
+        updated_servers = Map.drop(socket.assigns.servers, [server |> String.to_existing_atom()])
+        {:noreply, assign(socket, servers: updated_servers, error: "No connection to #{server}")}
+    end
   end
 
   def handle_event(
