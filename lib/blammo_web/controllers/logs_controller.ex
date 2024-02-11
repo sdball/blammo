@@ -1,11 +1,22 @@
 defmodule BlammoWeb.LogsController do
+  @moduledoc """
+  Provide web functions for Blammo capabilities.
+
+  Right now the only collaborator is `Blammo.LogConsumer`
+  """
   use BlammoWeb, :controller
 
+  @doc """
+  Return the Blammo tagline.
+  """
   def tagline(conn, _params) do
     conn
     |> text("🪵  Log! From BLAMMO!\n")
   end
 
+  @doc """
+  The "filter-first" capability path.
+  """
   def loglines(conn, params) do
     with {:ok, valid} <- validate_params(params),
          {:ok, options} <- Blammo.LogConsumer.Options.build(valid),
@@ -23,6 +34,9 @@ defmodule BlammoWeb.LogsController do
     end
   end
 
+  @doc """
+  The "tail-first" capability path.
+  """
   def tail_first(conn, params) do
     with {:ok, valid} <- validate_params(params),
          {:ok, options} <- Blammo.LogConsumer.Options.build(valid),

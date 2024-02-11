@@ -1,4 +1,12 @@
 defmodule BlammoWeb.LogViewerLive do
+  @moduledoc """
+  A LiveView process providing the Blammo log tailing capabilities via
+  `Blammo.OtherServers`
+
+  Yes we use `Blammo.OtherServers` even for talking to our own server. That
+  allows a consistent interface regardless of log source.
+  """
+
   use BlammoWeb, :live_view
 
   alias Blammo.OtherServers

@@ -1,4 +1,18 @@
 defmodule Mix.Tasks.Gen.SampleLogs do
+  @moduledoc """
+  `Mix.Task` to generate sample log files.
+
+  ## Examples
+
+  ```
+  mix gen.sample_logs --log-size 10MB
+  ```
+
+  ```
+  mix gen.sample_logs --log-size 1GB
+  ```
+  """
+
   use Mix.Task
 
   @shortdoc "Generate sample log files up to a declared file size."

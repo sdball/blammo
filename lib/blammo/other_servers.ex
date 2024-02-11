@@ -1,12 +1,25 @@
 defmodule Blammo.OtherServers do
+  @moduledoc """
+  Blammo.OtherServers provides functions to discover and interact with other servers.
+  """
+
   use GenServer
 
   defstruct servers: %{}
 
+  @doc """
+  Lists other known servers.
+  """
   def list() do
     GenServer.call(__MODULE__, :servers)
   end
 
+  @doc """
+  Lists files available at the given other server `nodename`
+
+  Returns `{:ok, files}` if successful or `{:error, :no_connection}` if
+  there is no connection to the other server. (i.e. it's gone offline)
+  """
   def files(nodename) do
     nodename
     |> Node.ping()
@@ -54,6 +67,15 @@ defmodule Blammo.OtherServers do
     {:ok, state, {:continue, :join}}
   end
 
+  @doc """
+  Joins the collective of servers.
+
+  - Connects to the mesh network
+  - Subscribes to the server topic
+  - Begins the heartbeat
+
+  Continuation from `init/1`
+  """
   def handle_continue(:join, %__MODULE__{} = state) do
     connect_to_known_peers(1..4)
     subscribe_to_servers()
