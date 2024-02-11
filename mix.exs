@@ -9,7 +9,17 @@ defmodule Blammo.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      # docs
+      name: "Blammo",
+      source_url: "https://github.com/sdball/blammo",
+      docs: [
+        main: "Blammo",
+        cover: "./images/logo.png",
+        logo: "./images/logo.png",
+        extras: ["README.md", "DESIGN.md"],
+        assets: "./images"
+      ]
     ]
   end
 
@@ -54,7 +64,8 @@ defmodule Blammo.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.2"}
+      {:bandit, "~> 1.2"},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
     ]
   end
 
@@ -73,7 +84,13 @@ defmodule Blammo.MixProject do
         "tailwind blammo --minify",
         "esbuild blammo --minify",
         "phx.digest"
-      ]
+      ],
+      docs: ["docs", &copy_images/1]
     ]
+  end
+
+  defp copy_images(_args) do
+    File.mkdir("./doc/images")
+    File.cp_r("./images", "./doc/images")
   end
 end
