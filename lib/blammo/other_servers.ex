@@ -60,6 +60,10 @@ defmodule Blammo.OtherServers do
     {:noreply, %{state | servers: updated_servers}}
   end
 
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+
   def handle_call(:servers, _from, %__MODULE__{} = state) do
     {:reply, state.servers, state}
   end
@@ -68,30 +72,38 @@ defmodule Blammo.OtherServers do
     {:reply, Blammo.LogConsumer.log_files(), state}
   end
 
-  def handle_call({:tail_log, filename, filter, lines}, _from, %__MODULE__{} = state)
+  def handle_call({:tail_log, filename, filter, lines}, from, %__MODULE__{} = state)
       when is_integer(lines) do
-    options =
-      Blammo.LogConsumer.Options.build!(%{
-        filename: filename,
-        filter: filter,
-        lines: lines
-      })
+    Task.async(fn ->
+      options =
+        Blammo.LogConsumer.Options.build!(%{
+          filename: filename,
+          filter: filter,
+          lines: lines
+        })
 
-    result = Blammo.LogConsumer.consume_filter_first(options)
-    {:reply, result, state}
+      result = Blammo.LogConsumer.consume_filter_first(options)
+      GenServer.reply(from, result)
+    end)
+
+    {:noreply, state}
   end
 
-  def handle_call({:tail_log, filename, lines, filter}, _from, %__MODULE__{} = state)
+  def handle_call({:tail_log, filename, lines, filter}, from, %__MODULE__{} = state)
       when is_integer(lines) do
-    options =
-      Blammo.LogConsumer.Options.build!(%{
-        filename: filename,
-        filter: filter,
-        lines: lines
-      })
+    Task.async(fn ->
+      options =
+        Blammo.LogConsumer.Options.build!(%{
+          filename: filename,
+          filter: filter,
+          lines: lines
+        })
 
-    result = Blammo.LogConsumer.consume_lines_first(options)
-    {:reply, result, state}
+      result = Blammo.LogConsumer.consume_lines_first(options)
+      GenServer.reply(from, result)
+    end)
+
+    {:noreply, state}
   end
 
   defp connect_to_known_peers(range) do
