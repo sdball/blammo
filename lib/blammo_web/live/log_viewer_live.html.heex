@@ -8,6 +8,25 @@
     <div class="bg-white rounded-lg shadow-lg w-64 p-9">
       <form phx-submit="tail_log" phx-change="tail_log">
         <div class="mb-4">
+          <label for="server" class="block text-gray-700 text-sm font-bold mb-2">Server</label>
+          <select
+            name="server"
+            id="server"
+            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+            phx-change="fetch_server_files"
+            disabled={@busy}
+          >
+            <%= for server <- Map.keys(@servers) do %>
+              <%= if Atom.to_string(server) == @server do %>
+                <option value={server} selected><%= server %></option>
+              <% else %>
+                <option value={server}><%= server %></option>
+              <% end %>
+            <% end %>
+          </select>
+        </div>
+
+        <div class="mb-4">
           <label for="file" class="block text-gray-700 text-sm font-bold mb-2">File</label>
           <select
             name="file"
@@ -15,11 +34,11 @@
             class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
             disabled={@busy}
           >
-            <%= for file <- @files do %>
-              <%= if file == @file do %>
-                <option value={file} selected><%= file %></option>
+            <%= for logfile <- @files do %>
+              <%= if logfile == @file do %>
+                <option value={logfile} selected><%= logfile %></option>
               <% else %>
-                <option value={file}><%= file %></option>
+                <option value={logfile}><%= logfile %></option>
               <% end %>
             <% end %>
           </select>
