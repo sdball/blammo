@@ -1,7 +1,5 @@
 defmodule Blammo.LogConsumer do
   defmodule Options do
-    @log_path Application.compile_env(:blammo, :log_consumer_path, "/var/log")
-
     defstruct [:filename, :filepath, lines: 1000, filter: nil]
 
     def build(given) when is_map(given) do
@@ -14,11 +12,11 @@ defmodule Blammo.LogConsumer do
         options.lines <= 0 ->
           {:error, "line count of less than 1 is invalid"}
 
-        Path.safe_relative(options.filename, @log_path) == :error ->
+        Path.safe_relative(options.filename, log_path()) == :error ->
           {:error, "invalid file path"}
 
         true ->
-          {:ok, %{options | filepath: Path.join(@log_path, options.filename)}}
+          {:ok, %{options | filepath: Path.join(log_path(), options.filename)}}
       end
     end
 
@@ -27,7 +25,9 @@ defmodule Blammo.LogConsumer do
       options
     end
 
-    def log_path, do: @log_path
+    def log_path do
+      Application.get_env(:blammo, :log_consumer_path, "/var/log")
+    end
   end
 
   def consume_filter_first(options = %Options{}) do
