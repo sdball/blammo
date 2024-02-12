@@ -25,6 +25,10 @@ defmodule BlammoWeb.Router do
     get "/logs", LogsController, :logs
     get "/logs/filter-first", LogsController, :loglines
     get "/logs/tail-first", LogsController, :tail_first
+    get "/servers", ServersController, :index
+    get "/servers/logs", ServersController, :logs
+    get "/servers/logs/filter-first", ServersController, :filter_first
+    get "/servers/logs/tail-first", ServersController, :tail_first
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
