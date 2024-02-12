@@ -177,3 +177,25 @@ Details (average, fastest, slowest):
 Status code distribution:
   [200]	200 responses
 ```
+
+## Multiple Nodes (dev-only)
+
+When instances of Blammo are named `node1@localhost`, `node2@localhost`, `node3@localhost`, or `node4@localhost` they will automatically form a peer cluster and allow tail-ing log files from their peers.
+
+Currently this is done with hardcoded calls to `Node.connect/1`: in production we
+would almost certainly use `libcluster`.
+
+Further Reading: https://fly.io/docs/elixir/the-basics/clustering/
+
+The nodes use Phoenix's PubSub system which is built on the `pg` module from Erlang which allows seamless named process groups.
+
+When a node joins the cluster and every five seconds afterward it emits a heartbeat message to the "server" topic.
+
+Each node (and each instance of `BlammoWeb.LogViewerLive`) subscribes to the "server"
+topic to maintain a current list of known peers.
+
+The peers allow listing their own log files and tailing their logs. All peer to peer communication is done via distributed Erlang using the PIDs of the `Blammo.Server` processes.
+
+(When PIDs are used message passing between processes even across different nodes is transparently handled by distributed Erlang.)
+
+The message handling is even more specifically done with the `GenServer` behavior which allows a process to consistently handle synchronous and asynchronous messages.

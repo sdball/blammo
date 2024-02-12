@@ -99,6 +99,28 @@ http://localhost:4000/
 
 It's log log log!
 
+## Running multiple instances
+
+If you name your Blammo nodes in the pattern `node<1-4>@localhost` then the nodes will
+automatically cluster and allow reading log files from any peer.
+
+e.g.
+
+```
+node1@localhost
+node2@localhost
+```
+
+To name a node use Elixir's standard node naming
+
+```
+iex --sname node1@localhost -S mix phx.server
+```
+
+```
+iex --sname node2@localhost -S mix phx.server
+```
+
 ## Running Tests
 
 You can run all tests with the command
