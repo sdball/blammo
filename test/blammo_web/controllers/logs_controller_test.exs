@@ -4,17 +4,9 @@ defmodule BlammoWeb.LogsControllerTest do
 
   alias Blammo.DataCase, as: TestData
 
-  test "GET /api/logs for test.log returns log lines in reverse order (newest first)", %{
-    conn: conn
-  } do
-    conn = get(conn, ~p"/api/logs", %{filename: "test.log", lines: 10})
-
-    expected =
-      TestData.log_contents()
-      |> Enum.reverse()
-      |> Enum.join("\n")
-
-    assert text_response(conn, 200) == expected <> "\n"
+  test "GET /api/logs lists available log files", %{conn: conn} do
+    conn = get(conn, ~p"/api/logs")
+    assert json_response(conn, 200) |> Enum.any?(&(&1 == "test.log"))
   end
 
   test "GET /api/logs/filter-first for test.log returns log lines in reverse order (newest first)",

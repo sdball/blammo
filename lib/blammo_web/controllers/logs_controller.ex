@@ -4,6 +4,7 @@ defmodule BlammoWeb.LogsController do
 
   Right now the only collaborator is `Blammo.LogConsumer`
   """
+  alias Blammo.LogConsumer
   use BlammoWeb, :controller
 
   @doc """
@@ -12,6 +13,11 @@ defmodule BlammoWeb.LogsController do
   def tagline(conn, _params) do
     conn
     |> text("🪵  Log! From BLAMMO!\n")
+  end
+
+  def logs(conn, _params) do
+    conn
+    |> json(LogConsumer.log_files())
   end
 
   @doc """

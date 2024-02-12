@@ -22,7 +22,7 @@ defmodule BlammoWeb.Router do
   scope "/api", BlammoWeb do
     pipe_through :api
     get "/tagline", LogsController, :tagline
-    get "/logs", LogsController, :loglines
+    get "/logs", LogsController, :logs
     get "/logs/filter-first", LogsController, :loglines
     get "/logs/tail-first", LogsController, :tail_first
   end
