@@ -7,6 +7,6 @@ defmodule Blammo do
   if it comes from the database, an external API or others.
 
   The primary modules within Blammo currently are `Blammo.File`,
-  `Blammo.LogConsumer`, and `Blammo.OtherServers`.
+  `Blammo.LogConsumer`, and `Blammo.Servers`.
   """
 end

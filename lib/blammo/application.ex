@@ -10,7 +10,7 @@ defmodule Blammo.Application do
       {DNSCluster, query: Application.get_env(:blammo, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Blammo.PubSub},
       {Task.Supervisor, name: Blammo.LogSupervisor},
-      Blammo.OtherServers,
+      Blammo.Servers,
       BlammoWeb.Endpoint
     ]
 

@@ -1,15 +1,15 @@
 defmodule BlammoWeb.LogViewerLive do
   @moduledoc """
   A LiveView process providing the Blammo log tailing capabilities via
-  `Blammo.OtherServers`
+  `Blammo.Servers`.
 
-  Yes we use `Blammo.OtherServers` even for talking to our own server. That
+  Yes we use `Blammo.Servers` even for talking to our own logs. That
   allows a consistent interface regardless of log source.
   """
 
   use BlammoWeb, :live_view
 
-  alias Blammo.OtherServers
+  alias Blammo.Servers
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -18,7 +18,7 @@ defmodule BlammoWeb.LogViewerLive do
 
     {:ok,
      assign(socket,
-       servers: OtherServers.list(),
+       servers: Servers.list(),
        files: get_files(),
        server: nil,
        file: nil,
@@ -31,7 +31,7 @@ defmodule BlammoWeb.LogViewerLive do
   end
 
   def handle_event("fetch_server_files", %{"server" => server}, socket) do
-    case OtherServers.files(server |> String.to_existing_atom()) do
+    case Servers.files(server |> String.to_existing_atom()) do
       {:ok, server_files} ->
         {:noreply,
          assign(socket, files: server_files, file: nil, log_content: "", server: server)}
@@ -135,6 +135,6 @@ defmodule BlammoWeb.LogViewerLive do
   end
 
   defp tail_log(server, file, lines, filter) do
-    OtherServers.tail_log(server |> String.to_existing_atom(), file, filter, lines)
+    Servers.tail_log(server |> String.to_existing_atom(), file, filter, lines)
   end
 end

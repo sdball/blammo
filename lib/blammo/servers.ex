@@ -1,6 +1,6 @@
-defmodule Blammo.OtherServers do
+defmodule Blammo.Servers do
   @moduledoc """
-  Blammo.OtherServers provides functions to discover and interact with other servers.
+  Blammo.Servers provides functions to discover and interact with peer servers.
   """
 
   use GenServer
@@ -8,17 +8,17 @@ defmodule Blammo.OtherServers do
   defstruct servers: %{}
 
   @doc """
-  Lists other known servers.
+  Lists known servers.
   """
   def list() do
     GenServer.call(__MODULE__, :servers)
   end
 
   @doc """
-  Lists files available at the given other server `nodename`
+  Lists files available at the given server `nodename`
 
   Returns `{:ok, files}` if successful or `{:error, :no_connection}` if
-  there is no connection to the other server. (i.e. it's gone offline)
+  there is no connection to the server. (i.e. it's gone offline)
   """
   def files(nodename) do
     nodename
