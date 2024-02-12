@@ -12,20 +12,22 @@ Let's get log contents via REST!
 
 You can either use the web interface at http://localhost:4000 or access the API directly.
 
-For direct API access to log file lines you have two endpoints
+When tailing logs you have the choice of two approaches
 
 - one applies a given filter (if any) first and searches until it reaches the requested number of lines, the beginning of the file, or times out
 - one retrieves the requested number of lines first and then applies a given filter (if any)
 
-| Endpoint     | Route                                      | Params                  |
-| ------------ | ------------------------------------------ | ----------------------- |
-| filter first | GET http://localhost/api/logs/filter-first | filename, filter, lines |
-| filter first | GET http://localhost/api/logs              | filename, filter, lines |
-| lines first  | GET http://localhost/api/logs/lines-first  | filename, filter, lines |
+| Endpoint                    | Route                              | Params                          |
+| --------------------------- | ---------------------------------- | ------------------------------- |
+| list logs                   | GET /api/logs                      | -                               |
+| filter first                | GET /api/logs/filter-first         | filename, filter, lines         |
+| lines first                 | GET /api/logs/tail-first           | filename, filter, lines         |
+| list peer servers           | GET /api/servers                   | -                               |
+| list logs on server         | GET /api/servers/logs              | server                          |
+| filter first for server log | GET /api/servers/logs/filter-first | server, filename, filter, lines |
+| tail first for server log   | GET /api/servers/logs/tail-first   | server, filename, filter, lines |
 
-In both endpoints `lines` defaults to `1000` if not provided.
-
-The `/api/logs` endpoint is configured as an alias to the "filter-first" endpoint.
+The `lines` parameter defaults to `1000` if not provided.
 
 Examples:
 
@@ -85,10 +87,10 @@ With the server running you can query the API for log lines! (The development se
 
 ```
 # last 12 lines of the log file
-curl http://localhost:4000/api/logs\?filename\=sample.10MB.log\&lines\=12
+curl http://localhost:4000/api/logs/filter-first\?filename\=sample.10MB.log\&lines\=12
 
 # last 12 instances of xyzzy
-curl http://localhost:4000/api/logs\?filename\=sample.10MB.log\&lines\=12\&filter=xyzzy
+curl http://localhost:4000/api/logs/filter-first\?filename\=sample.10MB.log\&lines\=12\&filter=xyzzy
 ```
 
 You can also browse to the web interface!
