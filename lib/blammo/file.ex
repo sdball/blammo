@@ -61,7 +61,7 @@ defmodule Blammo.File do
 
   This is the "filter first" approach path.
   """
-  def filtered_tail(fpath, filter, limit) do
+  def filtered_tail(fpath, filter, limit, chunk_size \\ 1_048_576) do
     with {:ok, file} <- File.open(fpath) do
       file_size = File.stat!(fpath).size
 
@@ -70,10 +70,12 @@ defmodule Blammo.File do
           file: file,
           file_size: file_size,
           filter: filter,
-          limit: limit
+          limit: limit,
+          chunk: chunk_size
         })
 
-      recur_filtered_tail(options, current: file_size, lines: [])
+      current = max(file_size - options.chunk, 0)
+      recur_filtered_tail(options, current: current, lines: [])
     else
       {:error, reason} ->
         {:error, reason}
@@ -86,11 +88,16 @@ defmodule Blammo.File do
     start = max(options.file_size - options.chunk, 0)
 
     with {:ok, bytes} <- :file.pread(options.file, start, options.file_size) do
+      lines = String.split(bytes, "\n", trim: true)
+
       lines =
-        bytes
-        |> String.split("\n", trim: true)
-        |> maybe_drop_partial_line(start)
-        |> Enum.take(-options.limit)
+        if start == 0 do
+          lines
+        else
+          Enum.drop(lines, 1)
+        end
+
+      lines = Enum.take(lines, -options.limit)
 
       cond do
         start == 0 ->
@@ -106,27 +113,30 @@ defmodule Blammo.File do
   end
 
   defp recur_filtered_tail(options = %FilteredTailOptions{}, current: current, lines: lines) do
-    start = max(current - options.chunk, 0)
+    with {:ok, bytes} <- :file.pread(options.file, current, options.chunk) do
+      split_lines = String.split(bytes, "\n", trim: true)
 
-    with {:ok, bytes} <- :file.pread(options.file, start, current) do
+      {partial, more_lines} =
+        if current == 0 && options.chunk > options.file_size do
+          {"", split_lines}
+        else
+          maybe_drop_partial_line(split_lines, current)
+        end
+
       more_lines =
-        bytes
-        |> String.split("\n", trim: true)
-        |> maybe_drop_partial_line(start)
+        more_lines
         |> maybe_filter(options.filter)
         |> Enum.to_list()
 
-      lines = (lines ++ more_lines) |> Enum.take(-options.limit)
+      lines = (more_lines ++ lines) |> Enum.take(-options.limit)
 
       cond do
-        start == 0 ->
+        current == 0 ->
           lines
 
         Enum.count(lines) < options.limit ->
-          next_chunk = max(options.chunk * 2, 52_428_800)
-
-          recur_filtered_tail(%{options | chunk: next_chunk},
-            current: current - options.chunk,
+          recur_filtered_tail(options,
+            current: max(current - options.chunk + byte_size(partial), 0),
             lines: lines
           )
 
@@ -136,10 +146,15 @@ defmodule Blammo.File do
     end
   end
 
-  defp maybe_drop_partial_line(lines, 0), do: lines
+  defp maybe_drop_partial_line(lines, 0) do
+    {"", List.delete_at(lines, -1)}
+  end
+
+  defp maybe_drop_partial_line(lines, _start) when length(lines) == 1, do: {"", lines}
 
   defp maybe_drop_partial_line(lines, _start) do
-    Stream.drop(lines, 1)
+    [partial | remaining] = lines
+    {partial, remaining}
   end
 
   defp maybe_filter(lines, nil), do: lines

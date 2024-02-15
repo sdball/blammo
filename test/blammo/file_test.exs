@@ -36,6 +36,15 @@ defmodule Blammo.FileTest do
     assert Blammo.File.filtered_tail(filepath, filter, limit) === expected
   end
 
+  test "filtered_tail/3 with a small chunk size correctly fetches lines" do
+    filepath = TestData.log_path()
+    filter = ""
+    limit = 10
+    chunk = 12
+    expected = TestData.log_contents()
+    assert Blammo.File.filtered_tail(filepath, filter, limit, chunk) === expected
+  end
+
   if TestData.large_file?() do
     test "tail/2 is performant against a large file" do
       {timing, _lines} =
