@@ -58,7 +58,15 @@ defmodule BlammoWeb.LogViewerLive do
        }}
     )
 
-    {:noreply, assign(socket, busy: true, log_content: "Reading … … …")}
+    {:noreply,
+     assign(socket,
+       busy: true,
+       log_content: "Reading … … …",
+       server: server,
+       file: file,
+       lines: lines,
+       filter: filter
+     )}
   end
 
   def handle_event("tail_log", _params, socket), do: {:noreply, socket}
