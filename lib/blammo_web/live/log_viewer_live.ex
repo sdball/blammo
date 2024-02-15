@@ -60,7 +60,7 @@ defmodule BlammoWeb.LogViewerLive do
 
     {:noreply,
      assign(socket,
-       busy: true,
+       busy: System.os_time(:millisecond),
        log_content: "Reading … … …",
        server: server,
        file: file,

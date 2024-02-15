@@ -75,7 +75,7 @@
         </div>
 
         <%= if @busy do %>
-          <p>Busy</p>
+          <div class="font-mono text-sm" id="timer" phx-hook="Timer" data-start-time={@busy} />
         <% else %>
           <button
             type="submit"
