@@ -114,6 +114,7 @@ defmodule Blammo.File do
         |> String.split("\n", trim: true)
         |> maybe_drop_partial_line(start)
         |> maybe_filter(options.filter)
+        |> Enum.to_list()
 
       lines = (lines ++ more_lines) |> Enum.take(-options.limit)
 
@@ -138,12 +139,13 @@ defmodule Blammo.File do
   defp maybe_drop_partial_line(lines, 0), do: lines
 
   defp maybe_drop_partial_line(lines, _start) do
-    Enum.drop(lines, 1)
+    Stream.drop(lines, 1)
   end
 
   defp maybe_filter(lines, nil), do: lines
 
   defp maybe_filter(lines, filter) do
-    Enum.filter(lines, &String.contains?(&1, filter))
+    lines
+    |> Stream.filter(&String.contains?(&1, filter))
   end
 end
