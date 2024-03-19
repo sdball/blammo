@@ -100,11 +100,18 @@ defmodule Blammo.LogConsumer do
   - `{:ok, result}`
   - `{:error, reason}`
   """
-  def consume_filter_first(options = %Options{}) do
+  def consume(options = %Options{}) do
     task =
       Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
+        filter_fn =
+          if options.filter do
+            &String.contains?(&1, options.filter)
+          else
+            nil
+          end
+
         tail =
-          Blammo.File.filtered_tail(options.filepath, options.filter, options.lines)
+          Blammo.File.tail(options.filepath, options.lines, filter_fn)
 
         case tail do
           {:error, :enoent} ->
@@ -129,45 +136,6 @@ defmodule Blammo.LogConsumer do
   end
 
   @doc """
-  The code path for the "tail first" tail approach.
-
-  Calls `Blammo.File.tail` with relevant parts of the `Options` struct
-  and consolidates the various possible results into a simple set of usable
-  results for the caller in the formats
-
-  - `{:ok, result}`
-  - `{:error, reason}`
-  """
-  def consume_lines_first(options = %Options{}) do
-    task =
-      Task.Supervisor.async_nolink(Blammo.LogSupervisor, fn ->
-        tail =
-          Blammo.File.tail(options.filepath, options.lines)
-          |> maybe_filter(options.filter)
-
-        case tail do
-          {:error, :enoent} ->
-            {:error, "file not found"}
-
-          {:error, _reason} ->
-            {:error, "error reading file"}
-
-          lines ->
-            lines
-            |> Enum.reverse()
-            |> Enum.join("\n")
-        end
-      end)
-
-    case Task.yield(task, 10_000) || Task.shutdown(task) do
-      {:ok, lines} when is_binary(lines) -> {:ok, lines}
-      {:ok, {:error, reason}} -> {:error, reason}
-      {:exit, reason} -> {:error, reason}
-      nil -> {:error, "timed out reading logfile"}
-    end
-  end
-
-  @doc """
   Returns the log files available in the configured log path.
 
   ## Log files
@@ -180,12 +148,5 @@ defmodule Blammo.LogConsumer do
     Options.log_path()
     |> File.ls!()
     |> Enum.sort()
-  end
-
-  defp maybe_filter(lines, nil), do: lines
-
-  defp maybe_filter(lines, filter) do
-    lines
-    |> Enum.filter(&String.contains?(&1, filter))
   end
 end

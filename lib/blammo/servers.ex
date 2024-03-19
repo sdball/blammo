@@ -115,24 +115,7 @@ defmodule Blammo.Servers do
           lines: lines
         })
 
-      result = Blammo.LogConsumer.consume_filter_first(options)
-      GenServer.reply(from, result)
-    end)
-
-    {:noreply, state}
-  end
-
-  def handle_call({:tail_log, filename, lines, filter}, from, %__MODULE__{} = state)
-      when is_integer(lines) do
-    Task.async(fn ->
-      options =
-        Blammo.LogConsumer.Options.build!(%{
-          filename: filename,
-          filter: filter,
-          lines: lines
-        })
-
-      result = Blammo.LogConsumer.consume_lines_first(options)
+      result = Blammo.LogConsumer.consume(options)
       GenServer.reply(from, result)
     end)
 

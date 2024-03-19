@@ -87,10 +87,10 @@ With the server running you can query the API for log lines! (The development se
 
 ```
 # last 12 lines of the log file
-curl http://localhost:4000/api/logs/filter-first\?filename\=sample.10MB.log\&lines\=12
+curl http://localhost:4000/api/logs\?filename\=sample.10MB.log\&lines\=12
 
 # last 12 instances of xyzzy
-curl http://localhost:4000/api/logs/filter-first\?filename\=sample.10MB.log\&lines\=12\&filter=xyzzy
+curl http://localhost:4000/api/logs\?filename\=sample.10MB.log\&lines\=12\&filter=xyzzy
 ```
 
 You can also browse to the web interface!
@@ -130,7 +130,3 @@ mix test
 ```
 
 A test log file will be automatically created as needed.
-
-## Further Reading
-
-- [Design](./DESIGN.md)

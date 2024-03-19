@@ -20,34 +20,11 @@ defmodule BlammoWeb.LogsController do
     |> json(LogConsumer.log_files())
   end
 
-  @doc """
-  The "filter-first" capability path.
-  """
   def loglines(conn, params) do
     with {:ok, valid} <- validate_params(params),
          {:ok, options} <- Blammo.LogConsumer.Options.build(valid),
          {:ok, lines} <-
-           Blammo.LogConsumer.consume_filter_first(options) do
-      text(conn, lines <> "\n")
-    else
-      {:error, reason} ->
-        conn
-        |> send_resp(400, reason)
-
-      nil ->
-        conn
-        |> send_resp(400, "error reading log file")
-    end
-  end
-
-  @doc """
-  The "tail-first" capability path.
-  """
-  def tail_first(conn, params) do
-    with {:ok, valid} <- validate_params(params),
-         {:ok, options} <- Blammo.LogConsumer.Options.build(valid),
-         {:ok, lines} <-
-           Blammo.LogConsumer.consume_lines_first(options) do
+           Blammo.LogConsumer.consume(options) do
       text(conn, lines <> "\n")
     else
       {:error, reason} ->

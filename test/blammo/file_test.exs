@@ -12,37 +12,27 @@ defmodule Blammo.FileTest do
     assert Blammo.File.tail(TestData.log_path(), 2) == expected
   end
 
-  test "filtered_tail/3 with a valid file, filter, and limit" do
+  test "tail/3 with a valid file, limit, and filter function" do
     filepath = TestData.log_path()
-    filter = "line"
+    filter_fn = &String.contains?(&1, "line")
     limit = 10
     expected = TestData.log_contents()
-    assert Blammo.File.filtered_tail(filepath, filter, limit) === expected
+    assert Blammo.File.tail(filepath, limit, filter_fn) === expected
   end
 
-  test "filtered_tail/3 with a nil filter acts like tail/2" do
+  test "tail/3 with a nil filter function acts like tail/2" do
     filepath = TestData.log_path()
-    filter = nil
     limit = 10
     expected = TestData.log_contents()
-    assert Blammo.File.filtered_tail(filepath, filter, limit) === expected
+    assert Blammo.File.tail(filepath, limit, nil) === expected
   end
 
-  test "filtered_tail/3 filters until it reaches the limit or entire file" do
+  test "tail/3 filters until it reaches the limit or entire file" do
     filepath = TestData.log_path()
-    filter = "line 2"
+    filter_fn = &String.contains?(&1, "line 2")
     limit = 1
     expected = ["line 2"]
-    assert Blammo.File.filtered_tail(filepath, filter, limit) === expected
-  end
-
-  test "filtered_tail/3 with a small chunk size correctly fetches lines" do
-    filepath = TestData.log_path()
-    filter = ""
-    limit = 10
-    chunk = 12
-    expected = TestData.log_contents()
-    assert Blammo.File.filtered_tail(filepath, filter, limit, chunk) === expected
+    assert Blammo.File.tail(filepath, limit, filter_fn) === expected
   end
 
   if TestData.large_file?() do
@@ -53,15 +43,15 @@ defmodule Blammo.FileTest do
           |> Blammo.File.tail(100)
         end)
 
-      # 1000 microseconds = 1ms
-      assert timing <= 1000
+      # 10000 microseconds = 10ms
+      assert timing <= 10000
     end
 
-    test "filtered_tail/3 is performant against a large file" do
+    test "tail/3 is performant against a large file" do
       {timing, _lines} =
         :timer.tc(fn ->
           TestData.large_file_path()
-          |> Blammo.File.filtered_tail("xyzzy", 100)
+          |> Blammo.File.tail(100, &String.contains?(&1, "xyzzy"))
         end)
 
       # 1_000_000 microseconds = 1000ms

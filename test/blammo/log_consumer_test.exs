@@ -68,7 +68,7 @@ defmodule Blammo.LogConsumerTest do
   end
 
   describe("LogConsumer") do
-    test "consume_filter_first/1 with a specific filter" do
+    test "consume/1 with a specific filter" do
       {:ok, options} =
         LogConsumer.Options.build(%{
           filename: TestData.log_name(),
@@ -76,13 +76,13 @@ defmodule Blammo.LogConsumerTest do
           lines: 10
         })
 
-      {:ok, result} = LogConsumer.consume_filter_first(options)
+      {:ok, result} = LogConsumer.consume(options)
 
       # got a result because we filter before we limit lines
       assert result === "line 3"
     end
 
-    test "consume_filter_first/1 with a wide filter" do
+    test "consume/1 with a wide filter" do
       {:ok, options} =
         LogConsumer.Options.build(%{
           filename: TestData.log_name(),
@@ -90,47 +90,19 @@ defmodule Blammo.LogConsumerTest do
           lines: 10
         })
 
-      {:ok, result} = LogConsumer.consume_filter_first(options)
+      {:ok, result} = LogConsumer.consume(options)
 
       assert result === TestData.log_contents() |> Enum.reverse() |> Enum.join("\n")
     end
 
-    test "consume_lines_first/1 with a wide filter" do
-      {:ok, options} =
-        LogConsumer.Options.build(%{
-          filename: TestData.log_name(),
-          filter: "line",
-          lines: 10
-        })
-
-      {:ok, result} = LogConsumer.consume_lines_first(options)
-
-      # no result because we got one line and then filtered
-      assert result === TestData.log_contents() |> Enum.reverse() |> Enum.join("\n")
-    end
-
-    test "consume_lines_first/1 with a specific filter and limited lines" do
-      {:ok, options} =
-        LogConsumer.Options.build(%{
-          filename: TestData.log_name(),
-          filter: "line 3",
-          lines: 1
-        })
-
-      {:ok, result} = LogConsumer.consume_lines_first(options)
-
-      # no result because we got one line and then filtered
-      assert result == ""
-    end
-
-    test "consume_lines_first/1 with limited lines" do
+    test "consume/1 with limited lines" do
       {:ok, options} =
         LogConsumer.Options.build(%{
           filename: TestData.log_name(),
           lines: 1
         })
 
-      {:ok, result} = LogConsumer.consume_lines_first(options)
+      {:ok, result} = LogConsumer.consume(options)
       expected_last_line = TestData.log_contents() |> Enum.at(-1)
       assert result == expected_last_line
     end
